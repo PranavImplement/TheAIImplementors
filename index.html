@@ -131,7 +131,7 @@
       </div>
       <div class="keystatus" id="keyStatus">Key stored only in this browser (localStorage). Not sent anywhere but api.anthropic.com.</div>
       <label class="demo-toggle"><input type="checkbox" id="demoMode" /> Offline demo mode (no API key / internet needed)</label>
-      <label class="demo-toggle"><input type="checkbox" id="jiraMode" /> Live Jira mode (via backend at <span id="backendUrlLabel">localhost:3001</span>)</label>
+      <label class="demo-toggle"><input type="checkbox" id="jiraMode" /> Live Jira mode (via backend at <span id="backendUrlLabel">localhost:</span>)</label>
       <div class="budget-line" id="budgetLine"></div>
     </div>
   </header>
@@ -446,7 +446,7 @@ function renderAllTickets(){
    Talks to the local backend in /server (server.js), which holds
    the real Jira + Anthropic credentials. See server/README setup.
 ---------------------------------------------------------------- */
-const BACKEND_URL = "http://localhost:3001";
+const BACKEND_URL = "https://theaiimplementors.onrender.com";
 
 async function loadLiveTickets(){
   const box = document.getElementById("allTickets");
