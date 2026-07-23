@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Signal — Enterprise Knowledge & Support AI (Prototype)</title>
+<style>
+  :root{
+    --bg:#FFFFFF;
+    --bg-panel:#FFFFFF;
+    --bg-card:#F4F4F4;
+    --line:#BFBFBF;
+    --ink:#353535;
+    --ink-dim:#6E6E6E;
+    --amber:#78D64B;
+    --teal:#1B5700;
+    --teal-mid:#468529;
+    --red:#B3261E;
+    --mono: 'Consolas', 'SF Mono', monospace;
+    --sans: Arial, Helvetica, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:var(--sans);}
+  a{color:var(--teal-mid);}
+
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 24px 80px;}
+
+  header.top{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:20px;margin-bottom:28px;}
+  .brand{display:flex;align-items:baseline;gap:12px;}
+  .brand .mark{font-family:var(--mono);font-weight:600;color:var(--amber);font-size:13px;letter-spacing:.12em;border:1px solid var(--amber);padding:3px 7px;border-radius:0;}
+  .brand h1{font-size:22px;margin:0;font-weight:600;letter-spacing:-0.01em;}
+  .brand p{margin:4px 0 0;color:var(--ink-dim);font-size:13px;}
+
+  .keybox{display:flex;gap:8px;align-items:center;}
+  .keybox input{background:var(--bg-card);border:1px solid var(--line);color:var(--ink);padding:8px 10px;border-radius:0;font-family:var(--mono);font-size:12px;width:220px;}
+  .keybox button{background:transparent;border:1px solid var(--teal);color:var(--teal);padding:8px 12px;border-radius:0;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--sans);}
+  .keybox button:hover{background:rgba(27,87,0,.10);}
+  .keystatus{font-size:11px;color:var(--ink-dim);font-family:var(--mono);}
+  .keystatus.on{color:var(--teal);}
+  .demo-toggle{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink-dim);margin-top:8px;cursor:pointer;font-family:var(--sans);}
+  .demo-toggle input{accent-color:var(--amber);cursor:pointer;}
+  .budget-line{font-size:11px;font-family:var(--mono);color:var(--ink-dim);margin-top:6px;min-height:14px;}
+  .budget-line .amt{color:var(--teal);font-weight:600;}
+  .budget-line.low .amt{color:var(--red);}
+  .feedback-row{display:flex;align-items:center;gap:10px;margin-top:14px;padding-top:12px;border-top:1px dashed var(--line);}
+  .feedback-row span{font-size:11.5px;color:var(--ink-dim);}
+  .fb-btn{background:none;border:1px solid var(--line);color:var(--ink-dim);border-radius:0;padding:4px 10px;font-size:13px;cursor:pointer;}
+  .fb-btn:hover{border-color:var(--teal);color:var(--teal);}
+  .fb-btn.active{border-color:var(--amber);color:var(--amber);background:rgba(120,214,75,.20);}
+  .fb-thanks{font-size:11.5px;color:var(--teal);font-family:var(--mono);}
+  .customer-reply{display:none;margin-top:12px;background:var(--bg-card);border:1px solid var(--teal);border-radius:0;padding:14px;font-size:13.5px;line-height:1.6;position:relative;}
+  .customer-reply .cr-label{font-family:var(--mono);font-size:10.5px;color:var(--teal);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;display:block;}
+  .customer-reply .cr-copy{position:absolute;top:10px;right:10px;background:none;border:1px solid var(--line);color:var(--ink-dim);border-radius:0;padding:3px 9px;font-size:11px;cursor:pointer;}
+  .customer-reply .cr-copy:hover{border-color:var(--teal);color:var(--teal);}
+
+  .top-questions{margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--line);}
+  .top-questions .tq-note{font-size:10px;font-weight:400;text-transform:none;color:var(--ink-dim);letter-spacing:0;}
+  .tq-item{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--bg-card);cursor:pointer;}
+  .tq-item:hover .tq-text{color:var(--teal-mid);}
+  .tq-text{font-size:12.5px;color:var(--ink);flex:1;}
+  .tq-count{font-family:var(--mono);font-size:11px;color:#FFFFFF;background:var(--teal);border-radius:0;padding:1px 7px;flex-shrink:0;}
+
+  .layout{display:grid;grid-template-columns:1.15fr .85fr;gap:22px;}
+  @media (max-width:900px){.layout{grid-template-columns:1fr;}}
+
+  .panel{background:var(--bg-panel);border:1px solid var(--line);border-radius:0;padding:20px;}
+  .panel h2{font-size:14px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-dim);margin:0 0 14px;font-weight:600;}
+
+  .ask-row{display:flex;gap:10px;}
+  textarea#query{flex:1;background:var(--bg-card);border:1px solid var(--line);color:var(--ink);border-radius:0;padding:12px;font-family:var(--sans);font-size:14px;resize:vertical;min-height:52px;}
+  textarea#query:focus{outline:2px solid var(--teal);outline-offset:1px;}
+  button#ask{background:var(--amber);color:#FFFFFF;border:none;border-radius:0;padding:0 20px;font-weight:700;font-size:14px;cursor:pointer;}
+  button#ask:disabled{opacity:.5;cursor:default;}
+  button#ask:hover:not(:disabled){filter:brightness(1.08);}
+
+  .examples{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
+  .examples button{background:none;border:1px dashed var(--line);color:var(--ink-dim);border-radius:0;padding:6px 12px;font-size:12px;cursor:pointer;font-family:var(--sans);}
+  .examples button:hover{border-color:var(--teal);color:var(--teal);}
+
+  .answer{margin-top:18px;border-top:1px solid var(--line);padding-top:16px;display:none;}
+  .answer.show{display:block;}
+  .confidence{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;padding:3px 8px;border-radius:0;margin-bottom:12px;}
+  .confidence.high{background:rgba(27,87,0,.10);color:var(--teal);}
+  .confidence.med{background:rgba(120,214,75,.20);color:var(--amber);}
+  .confidence.low{background:rgba(179,38,30,.12);color:var(--red);}
+  .answer-body{font-size:14.5px;line-height:1.65;white-space:pre-wrap;}
+  .answer-body strong{color:var(--amber);}
+  .loading{color:var(--ink-dim);font-family:var(--mono);font-size:13px;}
+  .error{color:var(--red);font-size:13px;font-family:var(--mono);white-space:pre-wrap;}
+
+  .retrieved{margin-top:16px;}
+  .retrieved h3{font-size:12px;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.06em;margin:0 0 8px;}
+  .ticket-mini{border:1px solid var(--line);border-radius:0;padding:10px 12px;margin-bottom:8px;background:var(--bg-card);}
+  .ticket-mini .id{font-family:var(--mono);color:var(--teal);font-size:12px;font-weight:600;}
+  .ticket-mini .t{font-size:13px;font-weight:600;margin:2px 0;}
+  .ticket-mini .meta{font-size:11.5px;color:var(--ink-dim);}
+  .score{float:right;font-family:var(--mono);font-size:11px;color:var(--ink-dim);}
+
+  .all-tickets{max-height:640px;overflow-y:auto;padding-right:4px;}
+  .all-tickets::-webkit-scrollbar{width:6px;}
+  .all-tickets::-webkit-scrollbar-thumb{background:var(--line);border-radius:0;}
+  .tk{border:1px solid var(--line);border-radius:0;padding:12px;margin-bottom:10px;cursor:pointer;transition:border-color .15s;}
+  .tk:hover{border-color:var(--teal);}
+  .tk .row1{display:flex;justify-content:space-between;gap:10px;align-items:baseline;}
+  .tk .id{font-family:var(--mono);font-size:11.5px;color:var(--amber);}
+  .tk .cat{font-family:var(--mono);font-size:10.5px;color:var(--ink-dim);border:1px solid var(--line);padding:1px 6px;border-radius:0;}
+  .tk .title{font-size:13.5px;font-weight:600;margin:5px 0 3px;}
+  .tk .desc{font-size:12.5px;color:var(--ink-dim);line-height:1.5;}
+  .tk-detail{display:none;margin-top:8px;border-top:1px solid var(--line);padding-top:8px;font-size:12.5px;line-height:1.6;color:var(--ink-dim);}
+  .tk-detail.show{display:block;}
+  .tk-detail b{color:var(--ink);}
+
+  footer.note{margin-top:32px;color:var(--ink-dim);font-size:12px;border-top:1px solid var(--line);padding-top:16px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand">
+      <span class="mark">PROTOTYPE</span>
+      <div>
+        <h1>Signal — Enterprise Knowledge & Support AI</h1>
+        <p>Ask a question in plain language. Signal searches past tickets and drafts a grounded first response.</p>
+      </div>
+    </div>
+    <div>
+      <div class="keybox">
+        <input id="apiKey" type="password" placeholder="Anthropic API key (sk-ant-...)" />
+        <button id="saveKey">Save</button>
+      </div>
+      <div class="keystatus" id="keyStatus">Key stored only in this browser (localStorage). Not sent anywhere but api.anthropic.com.</div>
+      <label class="demo-toggle"><input type="checkbox" id="demoMode" /> Offline demo mode (no API key / internet needed)</label>
+      <label class="demo-toggle"><input type="checkbox" id="jiraMode" /> Live Jira mode (via backend at <span id="backendUrlLabel">localhost:3001</span>)</label>
+      <div class="budget-line" id="budgetLine"></div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- LEFT: Ask Signal -->
+    <div class="panel">
+      <h2>Ask Signal</h2>
+      <div class="ask-row">
+        <textarea id="query" placeholder="e.g. Candidate logged out mid-test, AI proctoring flagged then session dropped"></textarea>
+        <button id="ask">Ask Signal</button>
+      </div>
+      <div class="examples">
+        <button data-q="Test is getting logged out for candidates mid-assessment">Test getting logged out</button>
+        <button data-q="AI Proctoring features are not working during the exam">AI Proctoring not working</button>
+        <button data-q="Problem in the candidate registration flow, form won't submit">Candidate registration issue</button>
+        <button data-q="Candidate logged out right after starting the test">Logged out after start</button>
+      </div>
+
+      <div class="answer" id="answerBox">
+        <div id="confidenceTag"></div>
+        <div id="answerContent" class="answer-body"></div>
+        <div class="retrieved" id="retrievedBox"></div>
+        <div class="feedback-row" id="feedbackRow" style="display:none;">
+          <span>Was this answer helpful?</span>
+          <button class="fb-btn" id="fbUp" title="Helpful">👍</button>
+          <button class="fb-btn" id="fbDown" title="Not helpful">👎</button>
+          <span class="fb-thanks" id="fbThanks"></span>
+          <button class="fb-btn" id="draftReplyBtn" style="margin-left:auto;">✉️ Draft customer reply</button>
+        </div>
+        <div class="customer-reply" id="customerReplyBox" style="display:none;"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Ticket browser + stats -->
+    <div class="panel">
+      <div class="top-questions" id="topQuestionsBox" style="display:none;">
+        <h2>Most asked questions <span class="tq-note">(Live Jira mode)</span></h2>
+        <div id="topQuestionsList"></div>
+      </div>
+      <h2>Historical tickets (mock knowledge base)</h2>
+      <div class="all-tickets" id="allTickets"></div>
+    </div>
+  </div>
+
+  <footer class="note">
+    Prototype only — mock ticket data, no real Jira connection, no auth/RBAC, API key lives in your browser. See README.md for what to build next before this touches real client data.
+  </footer>
+</div>
+
+<script>
+/* ---------------------------------------------------------------
+   MOCK KNOWLEDGE BASE
+   Stand-in for a real Jira/Confluence sync. Swap this array (or
+   the loadTickets() function) for a real API call later.
+---------------------------------------------------------------- */
+const TICKETS = [
+  {
+    id:"SUP-1042", category:"AI Proctoring", client:"Client A (Talent Assessment)", status:"Resolved",
+    title:"Candidate flagged and disconnected mid-test by proctoring AI",
+    description:"Multiple candidates were disconnected from their assessment session after the AI proctoring engine raised a face-not-detected flag, even though the candidate was visible on camera throughout.",
+    rootCause:"Webcam frame rate dropped below the proctoring engine's minimum sampling threshold on low-bandwidth connections, which the engine misread as 'face not detected' and auto-terminated the session.",
+    resolution:"Lowered the minimum frame-rate threshold for the face-detection heartbeat and added a 10-second grace buffer before auto-termination; added a client-side bandwidth check before test start.",
+    troubleshootingSteps:["Check candidate's network logs for frame drops","Review proctoring engine flag history for the session","Confirm webcam permissions and resolution settings","Reproduce with throttled bandwidth in staging"],
+    teamsInvolved:["Platform Engineering","Proctoring AI Team"],
+    resolvedBy:"Platform Engineering",
+    doc:"KB-0231: Proctoring disconnect troubleshooting",
+    successRate:"92%"
+  },
+  {
+    id:"SUP-988", category:"AI Proctoring", client:"Client D (University Admissions)", status:"Resolved",
+    title:"AI Proctoring shows 'multiple faces detected' false positive",
+    description:"Proctoring flags candidates for 'multiple faces detected' when only one person is in frame, mostly on laptops with wide-angle webcams.",
+    rootCause:"Wide-angle lenses distort background objects (posters, mirrors) which the face-detection model misclassifies as secondary faces.",
+    resolution:"Retrained the detection model with wide-angle camera samples and added a confidence threshold before auto-flagging; low-confidence flags now go to manual review instead of auto-fail.",
+    troubleshootingSteps:["Pull the flagged frame from session recording","Check webcam model/lens type","Compare against known wide-angle false-positive list"],
+    teamsInvolved:["Proctoring AI Team","QA"],
+    resolvedBy:"Proctoring AI Team",
+    doc:"KB-0198: Face-detection false positives",
+    successRate:"88%"
+  },
+  {
+    id:"SUP-1101", category:"Session / Auth", client:"Client A (Talent Assessment)", status:"Resolved",
+    title:"Candidate logged out immediately after starting the test",
+    description:"A subset of candidates were logged out within 30 seconds of starting their test, forcing a restart and losing their progress.",
+    rootCause:"Session token was being issued with a 30-second TTL instead of the intended 90-minute TTL due to a misconfigured environment variable pushed in the previous release.",
+    resolution:"Rolled back the environment variable, added a config validation check in the deploy pipeline to catch TTL misconfiguration before release.",
+    troubleshootingSteps:["Check session token TTL in auth service logs","Correlate logout timestamps with token issue time","Check recent deploys/config changes"],
+    teamsInvolved:["Platform Engineering","DevOps"],
+    resolvedBy:"DevOps",
+    doc:"KB-0244: Session TTL incidents",
+    successRate:"97%"
+  },
+  {
+    id:"SUP-1115", category:"Session / Auth", client:"Client B (Corporate Hiring)", status:"Resolved",
+    title:"Test session drops candidates after ~20 minutes",
+    description:"Candidates on longer assessments (45+ min) get logged out around the 20-minute mark, before the token should expire.",
+    rootCause:"Idle-timeout logic was triggering on background tab throttling in Chrome, which paused the heartbeat ping the session relied on to know the candidate was still active.",
+    resolution:"Switched heartbeat to the Page Visibility API and added a server-side grace period so a missed heartbeat doesn't immediately end the session.",
+    troubleshootingSteps:["Check heartbeat ping logs for gaps","Ask candidate which browser/OS","Check if tab was in background"],
+    teamsInvolved:["Frontend","Platform Engineering"],
+    resolvedBy:"Frontend",
+    doc:"KB-0251: Idle timeout / heartbeat issues",
+    successRate:"90%"
+  },
+  {
+    id:"SUP-1203", category:"Registration", client:"Client C (Public Sector Recruitment)", status:"Resolved",
+    title:"Candidate registration form fails silently on submit",
+    description:"Registration form appears to accept input but does nothing on submit; no error is shown to the candidate.",
+    rootCause:"Client-side validation was rejecting a special character in candidate surnames (accented characters) without surfacing an error message.",
+    resolution:"Fixed validation regex to allow accented and hyphenated names, and added visible inline error messages for all validation failures.",
+    troubleshootingSteps:["Reproduce with an accented/hyphenated surname","Check browser console for silent JS errors","Check form validation regex"],
+    teamsInvolved:["Frontend","QA"],
+    resolvedBy:"Frontend",
+    doc:"KB-0212: Registration form validation",
+    successRate:"95%"
+  },
+  {
+    id:"SUP-1240", category:"Registration", client:"Client B (Corporate Hiring)", status:"Resolved",
+    title:"Duplicate candidate registration creates two profiles",
+    description:"Candidates who refresh the registration page mid-submit end up with two separate profiles and two separate test invites.",
+    rootCause:"No idempotency key on the registration API call, so a page refresh during a slow network response re-submitted the form.",
+    resolution:"Added an idempotency key per registration attempt and a duplicate-email check before profile creation.",
+    troubleshootingSteps:["Search for duplicate emails in candidate DB","Check API logs for repeated POSTs with same payload","Check network speed at time of registration"],
+    teamsInvolved:["Backend","Platform Engineering"],
+    resolvedBy:"Backend",
+    doc:"KB-0219: Duplicate profile prevention",
+    successRate:"93%"
+  },
+  {
+    id:"SUP-1301", category:"Performance", client:"Client A (Talent Assessment)", status:"Resolved",
+    title:"Assessment dashboard slow to load for large candidate batches",
+    description:"Recruiters report the results dashboard taking 20+ seconds to load when a batch has more than 5,000 candidates.",
+    rootCause:"Dashboard query joined three large tables without pagination, causing a full table scan for each load.",
+    resolution:"Added pagination and a composite index on (batch_id, status); load time reduced to under 2 seconds.",
+    troubleshootingSteps:["Check query plan / slow query log","Confirm batch size at time of complaint","Check DB indexes on relevant tables"],
+    teamsInvolved:["Backend","Database Team"],
+    resolvedBy:"Database Team",
+    doc:"KB-0267: Dashboard performance tuning",
+    successRate:"91%"
+  },
+  {
+    id:"SUP-1355", category:"Production Outage", client:"All Clients", status:"Resolved (RCA complete)",
+    title:"Global test-taking outage during peak evening hours",
+    description:"Assessment platform returned 503 errors for ~40 minutes during peak hours, blocking all candidates from starting or continuing tests.",
+    rootCause:"Autoscaling policy had a hard cap on instance count that was reached during a regional traffic spike; new requests queued until they timed out.",
+    resolution:"Raised the autoscaling cap, added a queueing/backpressure page for candidates instead of a hard 503, and added alerting on instance-cap utilization.",
+    troubleshootingSteps:["Check autoscaling group metrics at incident time","Check load balancer error rates","Review traffic spike source (region/client)"],
+    teamsInvolved:["Platform Engineering","SRE","Management"],
+    resolvedBy:"SRE",
+    doc:"KB-0300: Outage postmortem template + this incident's RCA",
+    successRate:"N/A — postmortem"
+  },
+  {
+    id:"SUP-1390", category:"AI Proctoring", client:"Client D (University Admissions)", status:"Resolved",
+    title:"Proctoring AI unavailable, tests stuck on 'initializing camera'",
+    description:"Candidates stuck indefinitely on a camera-initializing screen; proctoring service health check was green.",
+    rootCause:"A third-party proctoring AI vendor had a regional API outage that wasn't reflected in their status page in time.",
+    resolution:"Added a client-side timeout with fallback messaging and automatic retry, plus a direct vendor-status webhook instead of relying on their public status page.",
+    troubleshootingSteps:["Check vendor status/webhook directly, not just their public page","Check client region vs vendor region outage","Check browser console for stalled API calls"],
+    teamsInvolved:["Platform Engineering","Vendor Management"],
+    resolvedBy:"Platform Engineering",
+    doc:"KB-0244b: Third-party proctoring dependency issues",
+    successRate:"85%"
+  },
+  {
+    id:"SUP-1420", category:"Session / Auth", client:"Client C (Public Sector Recruitment)", status:"Resolved",
+    title:"SSO login loop for candidates using corporate email",
+    description:"Candidates logging in via SSO get bounced back to the login page repeatedly without an error.",
+    rootCause:"SAML assertion clock skew between identity provider and assessment platform exceeded the allowed tolerance.",
+    resolution:"Increased clock-skew tolerance to 5 minutes and added NTP sync monitoring on the auth servers.",
+    troubleshootingSteps:["Check SAML assertion timestamps vs server time","Check identity provider logs for assertion errors","Check for recent NTP drift alerts"],
+    teamsInvolved:["Platform Engineering","IT/Infra"],
+    resolvedBy:"IT/Infra",
+    doc:"KB-0256: SSO/SAML login issues",
+    successRate:"89%"
+  },
+  {
+    id:"SUP-1455", category:"Registration", client:"Client A (Talent Assessment)", status:"Resolved",
+    title:"Candidates not receiving registration confirmation email",
+    description:"Registration completes successfully but confirmation and test-invite emails never arrive; not in spam either.",
+    rootCause:"Email provider throttled the sending domain after a spike in volume, silently dropping messages past the rate limit.",
+    resolution:"Split transactional email traffic across two sending domains and added delivery-failure alerting instead of silent drops.",
+    troubleshootingSteps:["Check email provider delivery logs, not just candidate spam folder","Check sending volume vs provider rate limit","Confirm domain reputation/throttle status"],
+    teamsInvolved:["Backend","Platform Engineering"],
+    resolvedBy:"Backend",
+    doc:"KB-0271: Transactional email delivery",
+    successRate:"94%"
+  },
+  {
+    id:"SUP-1480", category:"Performance", client:"Client B (Corporate Hiring)", status:"Resolved",
+    title:"Test player freezes on question with embedded video",
+    description:"Assessment player freezes for ~10 seconds when a question contains an embedded video, especially on mobile.",
+    rootCause:"Video assets were unoptimized (large file size, no adaptive bitrate), causing main-thread blocking while decoding on lower-end devices.",
+    resolution:"Moved to adaptive-bitrate streaming for embedded video and pre-fetch the next question's assets in the background.",
+    troubleshootingSteps:["Check device/browser of affected candidates","Check video asset size and encoding","Profile main-thread activity during freeze"],
+    teamsInvolved:["Frontend","Media/Content Team"],
+    resolvedBy:"Frontend",
+    doc:"KB-0288: Media performance in assessment player",
+    successRate:"87%"
+  },
+  {
+    id:"SUP-1502", category:"AI Proctoring", client:"Client B (Corporate Hiring)", status:"Resolved",
+    title:"Proctoring AI flags candidates with visual impairments for 'gaze not on screen'",
+    description:"Candidates using screen magnification or with certain visual impairments were repeatedly flagged for looking away from the screen.",
+    rootCause:"Gaze-tracking model assumed a standard viewing distance/angle and didn't account for accessibility accommodations already on file.",
+    resolution:"Linked accommodation flags on the candidate profile to the proctoring engine so gaze-tracking sensitivity is auto-adjusted or disabled per accommodation.",
+    troubleshootingSteps:["Check candidate accommodation profile","Cross-reference flag timestamps with declared accommodation type","Escalate to accessibility/compliance review if unresolved"],
+    teamsInvolved:["Proctoring AI Team","Accessibility/Compliance"],
+    resolvedBy:"Proctoring AI Team",
+    doc:"KB-0295: Accessibility & proctoring accommodations",
+    successRate:"90%"
+  },
+  {
+    id:"SUP-1540", category:"Session / Auth", client:"Client D (University Admissions)", status:"Open — under investigation",
+    title:"Intermittent logout on shared/lab computers",
+    description:"Candidates on shared university lab computers occasionally get logged out and back in as a different cached session.",
+    rootCause:"Not yet confirmed — suspected browser profile / cookie caching issue on shared machines with fast user switching.",
+    resolution:"Not yet resolved. Interim workaround: recommend incognito/private browsing on shared lab machines.",
+    troubleshootingSteps:["Check for shared browser profiles on lab machines","Check session cookie scope and cache headers","Reproduce with fast user switching on same physical machine"],
+    teamsInvolved:["Platform Engineering","Client Success"],
+    resolvedBy:"Unresolved",
+    doc:"KB-0301 (draft): Shared-device session isolation",
+    successRate:"N/A — open"
+  },
+  {
+    id:"SUP-1568", category:"Change Request", client:"Client A (Talent Assessment)", status:"Completed",
+    title:"Add configurable session timeout per client",
+    description:"Client requested the ability to set their own idle-timeout duration instead of the platform default.",
+    rootCause:"N/A — feature request, not an incident.",
+    resolution:"Added a per-tenant configuration field for idle timeout with sane min/max bounds enforced server-side.",
+    troubleshootingSteps:["N/A — enhancement, see change log"],
+    teamsInvolved:["Backend","Product"],
+    resolvedBy:"Backend",
+    doc:"KB-0305: Tenant-level configuration options",
+    successRate:"N/A — enhancement"
+  }
+];
+
+/* ---------------------------------------------------------------
+   LIGHTWEIGHT RETRIEVAL
+   Real system: vector search / embeddings over Jira+Confluence.
+   Prototype: keyword overlap scoring, good enough to demo the
+   end-to-end flow without a vector DB or ingestion pipeline.
+---------------------------------------------------------------- */
+const STOPWORDS = new Set(["the","is","a","an","and","or","of","to","in","on","for","with","are","was","were","be","been","it","this","that","after","during","not","working","problem","issue"]);
+
+function tokenize(str){
+  return str.toLowerCase().replace(/[^a-z0-9\s]/g," ").split(/\s+/).filter(w=>w && !STOPWORDS.has(w));
+}
+
+function scoreTicket(queryTokens, ticket){
+  const fields = [
+    {text: ticket.title, weight: 3},
+    {text: ticket.category, weight: 2},
+    {text: ticket.description, weight: 1.5},
+    {text: ticket.rootCause, weight: 1}
+  ];
+  let score = 0;
+  for(const {text, weight} of fields){
+    const tokens = tokenize(text);
+    for(const qt of queryTokens){
+      for(const t of tokens){
+        if(t === qt) score += weight;
+        else if(t.includes(qt) || qt.includes(t)){ if(qt.length>3) score += weight*0.4; }
+      }
+    }
+  }
+  return score;
+}
+
+function retrieve(query, topN=5){
+  const qTokens = tokenize(query);
+  const scored = TICKETS.map(t => ({ticket:t, score: scoreTicket(qTokens, t)}))
+    .filter(s => s.score > 0)
+    .sort((a,b) => b.score - a.score);
+  return scored.slice(0, topN);
+}
+
+/* ---------------------------------------------------------------
+   RENDER: ticket browser
+---------------------------------------------------------------- */
+function renderAllTickets(){
+  const box = document.getElementById("allTickets");
+  box.innerHTML = "";
+  TICKETS.forEach(t => {
+    const el = document.createElement("div");
+    el.className = "tk";
+    el.innerHTML = `
+      <div class="row1">
+        <span class="id">${t.id}</span>
+        <span class="cat">${t.category}</span>
+      </div>
+      <div class="title">${t.title}</div>
+      <div class="desc">${t.description}</div>
+      <div class="tk-detail">
+        <b>Root cause:</b> ${t.rootCause}<br/><br/>
+        <b>Resolution:</b> ${t.resolution}<br/><br/>
+        <b>Teams involved:</b> ${t.teamsInvolved.join(", ")} &nbsp;·&nbsp; <b>Status:</b> ${t.status}<br/>
+        <b>Doc:</b> ${t.doc}
+      </div>
+    `;
+    el.addEventListener("click", () => {
+      el.querySelector(".tk-detail").classList.toggle("show");
+    });
+    box.appendChild(el);
+  });
+}
+
+/* ---------------------------------------------------------------
+   LIVE JIRA MODE
+   Talks to the local backend in /server (server.js), which holds
+   the real Jira + Anthropic credentials. See server/README setup.
+---------------------------------------------------------------- */
+const BACKEND_URL = "http://localhost:3001";
+
+async function loadLiveTickets(){
+  const box = document.getElementById("allTickets");
+  box.innerHTML = `<div class="loading">Loading recent issues from Jira…</div>`;
+  try {
+    const resp = await fetch(`${BACKEND_URL}/api/tickets/recent`);
+    if(!resp.ok) throw new Error(`Backend returned ${resp.status}`);
+    const data = await resp.json();
+    if(data.error) throw new Error(data.error);
+    box.innerHTML = "";
+    (data.issues || []).forEach(t => {
+      const el = document.createElement("div");
+      el.className = "tk";
+      el.innerHTML = `
+        <div class="row1"><span class="id">${t.id}</span><span class="cat">${t.project ? t.project + " · " : ""}${t.category || ""}</span></div>
+        <div class="title">${t.title}</div>
+        <div class="desc">${t.description ? t.description.slice(0,160) : ""}</div>
+        <div class="tk-detail"><b>Status:</b> ${t.status || ""}<br/><a href="${t.url}" target="_blank">Open in Jira ↗</a></div>
+      `;
+      el.addEventListener("click", () => el.querySelector(".tk-detail").classList.toggle("show"));
+      box.appendChild(el);
+    });
+    if(!data.issues || !data.issues.length){
+      box.innerHTML = `<div class="loading">No issues returned — check JIRA_PROJECT_KEY / JQL in server/.env</div>`;
+    }
+  } catch(err){
+    box.innerHTML = `<div class="error">Couldn't reach the Jira backend: ${err.message}\n\nMake sure "npm start" is running in /server and .env is filled in.</div>`;
+  }
+}
+
+document.getElementById("demoMode").addEventListener("change", (e) => {
+  if(e.target.checked) document.getElementById("jiraMode").checked = false;
+});
+
+async function loadTopQuestions(){
+  const box = document.getElementById("topQuestionsBox");
+  const list = document.getElementById("topQuestionsList");
+  box.style.display = "block";
+  try{
+    const resp = await fetch(`${BACKEND_URL}/api/stats/top-questions`);
+    const data = await resp.json();
+    if(!data.top || !data.top.length){
+      list.innerHTML = `<div class="loading">No questions asked yet this session.</div>`;
+      return;
+    }
+    list.innerHTML = "";
+    data.top.forEach(q => {
+      const el = document.createElement("div");
+      el.className = "tq-item";
+      el.innerHTML = `<span class="tq-text">${q.display}</span><span class="tq-count">${q.count}×</span>`;
+      el.addEventListener("click", () => {
+        document.getElementById("query").value = q.display;
+        askAI();
+      });
+      list.appendChild(el);
+    });
+  } catch(err){
+    box.style.display = "none";
+  }
+}
+
+document.getElementById("jiraMode").addEventListener("change", (e) => {
+  if(e.target.checked){
+    document.getElementById("demoMode").checked = false;
+    loadLiveTickets();
+    loadTopQuestions();
+  } else {
+    renderAllTickets();
+    document.getElementById("topQuestionsBox").style.display = "none";
+  }
+  refreshBudget();
+});
+
+async function refreshBudget(){
+  const line = document.getElementById("budgetLine");
+  if(!document.getElementById("jiraMode").checked){ line.textContent = ""; return; }
+  try{
+    const resp = await fetch(`${BACKEND_URL}/api/debug/budget`);
+    const data = await resp.json();
+    const info = data.info || data;
+    const spend = typeof info.spend === "number" ? info.spend : null;
+    const budget = typeof info.max_budget === "number" ? info.max_budget : null;
+    if(spend === null || budget === null){ line.textContent = ""; return; }
+    const remaining = (budget - spend);
+    line.innerHTML = `Team budget: <span class="amt">$${remaining.toFixed(2)}</span> left of $${budget} (spent $${spend.toFixed(2)})`;
+    line.classList.toggle("low", remaining < budget * 0.1);
+  } catch(err){
+    line.textContent = "";
+  }
+}
+
+
+const KEY_STORAGE = "signal_proto_api_key";
+function getKey(){ return localStorage.getItem(KEY_STORAGE) || ""; }
+function setKey(k){ localStorage.setItem(KEY_STORAGE, k); }
+
+function refreshKeyStatus(){
+  const status = document.getElementById("keyStatus");
+  if(getKey()){
+    status.textContent = "Key saved in this browser only.";
+    status.classList.add("on");
+  } else {
+    status.textContent = "Key stored only in this browser (localStorage). Not sent anywhere but api.anthropic.com.";
+    status.classList.remove("on");
+  }
+}
+
+document.getElementById("saveKey").addEventListener("click", () => {
+  const val = document.getElementById("apiKey").value.trim();
+  if(val){ setKey(val); document.getElementById("apiKey").value = ""; refreshKeyStatus(); }
+});
+
+/* ---------------------------------------------------------------
+   ASK AI — retrieval + synthesis via Claude
+---------------------------------------------------------------- */
+function buildContext(matches){
+  return matches.map(({ticket}) => (
+`[${ticket.id}] ${ticket.title}
+Category: ${ticket.category} | Client: ${ticket.client} | Status: ${ticket.status}
+Description: ${ticket.description}
+Root cause: ${ticket.rootCause}
+Resolution: ${ticket.resolution}
+Troubleshooting steps: ${ticket.troubleshootingSteps.join("; ")}
+Teams involved: ${ticket.teamsInvolved.join(", ")}
+Documentation: ${ticket.doc}`
+  )).join("\n\n---\n\n");
+}
+
+function buildOfflineAnswer(query, matches){
+  if(!matches.length){
+    return "No close match found in the mock knowledge base for this description.\n\nRecommended next steps: log this as a new ticket and escalate to a human engineer — there's no historical precedent here to draw from.\n\nEscalate? Yes — no similar incidents on record.";
+  }
+  const top = matches[0].ticket;
+  const others = matches.slice(1,3).map(m => m.ticket.id).join(", ");
+  return `Likely root cause: ${top.rootCause}
+
+Recommended next steps:
+${top.troubleshootingSteps.map(s => "- " + s).join("\n")}
+
+Then apply the fix that resolved ${top.id}: ${top.resolution}
+
+Similar past incidents: ${top.id}${others ? ", " + others : ""}
+
+Escalate? ${top.status.toLowerCase().includes("open") ? "Yes — the closest match is still unresolved, so this likely needs a human engineer." : "Not immediately — this matches a previously resolved pattern, but confirm the fix still applies before closing."}
+
+(Offline demo mode — this answer is assembled directly from ticket ${top.id}'s fields, no live model call.)`;
+}
+
+async function askAI(){
+  const query = document.getElementById("query").value.trim();
+  if(!query) return;
+  const key = getKey();
+  const offline = document.getElementById("demoMode").checked;
+  const jiraLive = document.getElementById("jiraMode").checked;
+  const askBtn = document.getElementById("ask");
+  const answerBox = document.getElementById("answerBox");
+  const content = document.getElementById("answerContent");
+  const confTag = document.getElementById("confidenceTag");
+  const retrievedBox = document.getElementById("retrievedBox");
+
+  answerBox.classList.add("show");
+  confTag.innerHTML = "";
+  retrievedBox.innerHTML = "";
+  resetFeedbackRow();
+
+  if(jiraLive){
+    askBtn.disabled = true;
+    content.innerHTML = `<span class="loading">Searching your real Jira via the backend…</span>`;
+    try{
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 30000);
+      const resp = await fetch(`${BACKEND_URL}/api/ask`, {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({query}),
+        signal: controller.signal
+      });
+      clearTimeout(timer);
+      const data = await resp.json();
+      if(!resp.ok || data.error) throw new Error(data.error || `Backend returned ${resp.status}`);
+
+      const rb = document.createElement("div");
+      rb.innerHTML = "<h3>Matched Jira issues</h3>";
+      (data.matches || []).forEach(t => {
+        const m = document.createElement("div");
+        m.className = "ticket-mini";
+        m.innerHTML = `<span class="id">${t.id}</span><div class="t">${t.title}</div><div class="meta">${t.category || ""} · ${t.status || ""} · <a href="${t.url}" target="_blank">open ↗</a></div>`;
+        rb.appendChild(m);
+      });
+      retrievedBox.appendChild(rb);
+
+      if((data.pages || []).length){
+        const pb = document.createElement("div");
+        pb.innerHTML = "<h3>Matched Confluence pages</h3>";
+        data.pages.forEach(p => {
+          const m = document.createElement("div");
+          m.className = "ticket-mini";
+          m.innerHTML = `<div class="t">${p.title}</div><div class="meta">space: ${p.space} · <a href="${p.url}" target="_blank">open ↗</a></div>`;
+          pb.appendChild(m);
+        });
+        retrievedBox.appendChild(pb);
+      }
+
+      confTag.innerHTML = (data.matches || []).length
+        ? `<span class="confidence med">${data.matches.length} matching issue(s) found</span>`
+        : `<span class="confidence low">No close match in Jira</span>`;
+      content.textContent = data.answer;
+      showFeedbackRow(query);
+      window.__lastAnswer = { query, text: data.answer, mode: "jira" };
+      refreshBudget();
+      loadTopQuestions();
+    } catch(err){
+      const msg = err.name === "AbortError" ? "Request timed out after 30s — check your VPN/network and that the backend is running." : err.message;
+      content.innerHTML = `<span class="error">${msg}\n\nIs the backend running? cd server && npm start</span>`;
+    } finally {
+      askBtn.disabled = false;
+    }
+    return;
+  }
+
+  const matches = retrieve(query, 5);
+
+  if(matches.length){
+    const rb = document.createElement("div");
+    rb.innerHTML = "<h3>Retrieved from knowledge base</h3>";
+    matches.forEach(({ticket, score}) => {
+      const m = document.createElement("div");
+      m.className = "ticket-mini";
+      m.innerHTML = `<span class="score">match ${score.toFixed(1)}</span><span class="id">${ticket.id}</span>
+        <div class="t">${ticket.title}</div>
+        <div class="meta">${ticket.category} · ${ticket.client} · ${ticket.status}</div>`;
+      rb.appendChild(m);
+    });
+    retrievedBox.appendChild(rb);
+  }
+
+  askBtn.disabled = true;
+  content.innerHTML = `<span class="loading">Searching historical tickets and drafting a response…</span>`;
+
+  const topScore = matches.length ? matches[0].score : 0;
+  let confClass = "low", confLabel = "Low confidence match";
+  if(topScore >= 8){ confClass = "high"; confLabel = "Strong match found"; }
+  else if(topScore >= 3){ confClass = "med"; confLabel = "Partial match found"; }
+
+  if(offline){
+    // Simulate a brief "thinking" delay so the demo feels alive, no network call.
+    await new Promise(r => setTimeout(r, 500));
+    confTag.innerHTML = `<span class="confidence ${confClass}">${confLabel}</span>`;
+    content.textContent = buildOfflineAnswer(query, matches);
+    showFeedbackRow(query);
+    window.__lastAnswer = { query, text: content.textContent, mode: "offline" };
+    askBtn.disabled = false;
+    return;
+  }
+
+  const context = matches.length ? buildContext(matches) : "No matching historical tickets were found in the knowledge base.";
+
+  const systemPrompt = `You are Signal, an internal enterprise support assistant. You help support engineers by summarizing relevant historical tickets for a new incident.
+Only use the ticket information given to you below — do not invent ticket IDs, root causes, or resolutions that aren't in the provided context.
+Structure your answer with these sections, using plain text with short paragraphs or bullet points (no markdown headers, use "Likely root cause:", "Recommended next steps:", "Similar past incidents:", "Escalate?" as inline labels):
+1. Likely root cause (based on the closest matching tickets, and how confident you are)
+2. Recommended next steps / troubleshooting
+3. Similar past incidents (cite ticket IDs)
+4. Whether this should be escalated to a human engineer, and why
+Keep it concise — a support engineer should be able to read this in under 30 seconds. If the context doesn't contain a good match, say so plainly and recommend escalation rather than guessing.
+
+Historical tickets:
+${context}`;
+
+  try{
+    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": key,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 700,
+        system: systemPrompt,
+        messages: [{ role: "user", content: `New incident report: ${query}` }]
+      })
+    });
+
+    if(!resp.ok){
+      const errText = await resp.text();
+      throw new Error(`API error ${resp.status}: ${errText.slice(0,300)}`);
+    }
+
+    const data = await resp.json();
+    const textBlocks = (data.content || []).filter(b => b.type === "text").map(b => b.text);
+    const answer = textBlocks.join("\n").trim() || "No response text returned.";
+
+    confTag.innerHTML = `<span class="confidence ${confClass}">${confLabel}</span>`;
+    content.textContent = answer;
+    showFeedbackRow(query);
+    window.__lastAnswer = { query, text: answer, mode: "mock", key };
+  } catch(err){
+    content.innerHTML = `<span class="error">${err.message}\n\nCheck that your API key is valid and has available credit, and that nothing is blocking requests to api.anthropic.com.</span>`;
+  } finally {
+    askBtn.disabled = false;
+  }
+}
+
+document.getElementById("ask").addEventListener("click", askAI);
+document.getElementById("query").addEventListener("keydown", (e) => {
+  if(e.key === "Enter" && (e.metaKey || e.ctrlKey)) askAI();
+});
+document.querySelectorAll(".examples button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.getElementById("query").value = btn.dataset.q;
+    askAI();
+  });
+});
+
+/* ---------------------------------------------------------------
+   FEEDBACK (thumbs up/down) — best-effort logged to the backend if
+   it's running, purely cosmetic otherwise. Demonstrates the
+   feedback-loop idea from the roadmap without needing a database.
+---------------------------------------------------------------- */
+function resetFeedbackRow(){
+  const row = document.getElementById("feedbackRow");
+  row.style.display = "none";
+  document.getElementById("fbUp").classList.remove("active");
+  document.getElementById("fbDown").classList.remove("active");
+  document.getElementById("fbThanks").textContent = "";
+  document.getElementById("customerReplyBox").style.display = "none";
+  document.getElementById("customerReplyBox").innerHTML = "";
+  window.__lastAnswer = null;
+}
+
+function showFeedbackRow(query){
+  const row = document.getElementById("feedbackRow");
+  row.style.display = "flex";
+  row.dataset.query = query;
+}
+
+async function sendFeedback(helpful){
+  const row = document.getElementById("feedbackRow");
+  document.getElementById("fbUp").classList.toggle("active", helpful);
+  document.getElementById("fbDown").classList.toggle("active", !helpful);
+  document.getElementById("fbThanks").textContent = "Thanks for the feedback!";
+  try{
+    await fetch(`${BACKEND_URL}/api/feedback`, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ query: row.dataset.query, helpful })
+    });
+  } catch(err){ /* best-effort only — offline/mock mode has no backend running */ }
+}
+
+document.getElementById("fbUp").addEventListener("click", () => sendFeedback(true));
+document.getElementById("fbDown").addEventListener("click", () => sendFeedback(false));
+
+/* ---------------------------------------------------------------
+   DRAFT CUSTOMER REPLY — rewrites the internal answer into a
+   customer-facing message. Works in all three modes:
+   - Live Jira: via the backend (keeps the AI-Thon key server-side)
+   - Mock: directly via the pasted personal Anthropic key
+   - Offline: a simple client-side template, no network call
+---------------------------------------------------------------- */
+function offlineCustomerReplyTemplate(text){
+  const looksUnresolved = /escalate\?\s*yes/i.test(text) || /no close match|no historical precedent/i.test(text);
+  if(looksUnresolved){
+    return "Thanks for flagging this — we don't have this pinned down yet, so we've escalated it to our engineering team for a closer look. We'll follow up as soon as we have a clearer picture of what's happening and what the fix will involve.";
+  }
+  return "Thanks for your patience while we looked into this. We've identified a likely cause based on similar cases we've resolved before, and we're applying the same fix here. We'll confirm once it's in place — let us know if you're still seeing the issue after that.";
+}
+
+async function draftCustomerReply(){
+  const btn = document.getElementById("draftReplyBtn");
+  const box = document.getElementById("customerReplyBox");
+  const info = window.__lastAnswer;
+  if(!info) return;
+
+  btn.disabled = true;
+  box.style.display = "block";
+  box.innerHTML = `<span class="loading">Drafting a customer-facing version…</span>`;
+
+  try{
+    let reply;
+    if(info.mode === "jira"){
+      const resp = await fetch(`${BACKEND_URL}/api/draft-customer-reply`, {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ query: info.query, answer: info.text })
+      });
+      const data = await resp.json();
+      if(!resp.ok || data.error) throw new Error(data.error || `Backend returned ${resp.status}`);
+      reply = data.reply;
+    } else if(info.mode === "mock"){
+      const resp = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": info.key,
+          "anthropic-version": "2023-06-01",
+          "anthropic-dangerous-direct-browser-access": "true"
+        },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-6",
+          max_tokens: 300,
+          system: `Rewrite internal support notes into a short, warm, professional customer-facing reply. No internal ticket IDs or jargon. 3-6 sentences, no headers or bullets. If the internal notes are unresolved, say the issue is being actively investigated rather than guessing.`,
+          messages: [{ role: "user", content: `Customer's question: ${info.query}\n\nInternal notes:\n${info.text}` }]
+        })
+      });
+      const data = await resp.json();
+      if(!resp.ok) throw new Error(`API error: ${JSON.stringify(data).slice(0,200)}`);
+      reply = (data.content || []).filter(b=>b.type==="text").map(b=>b.text).join("\n").trim();
+    } else {
+      // offline — no network, just a template
+      await new Promise(r => setTimeout(r, 300));
+      reply = offlineCustomerReplyTemplate(info.text);
+    }
+
+    box.innerHTML = `<span class="cr-label">Draft customer reply</span><button class="cr-copy" id="crCopyBtn">Copy</button>${reply}`;
+    document.getElementById("crCopyBtn").addEventListener("click", () => {
+      navigator.clipboard.writeText(reply);
+      const c = document.getElementById("crCopyBtn");
+      c.textContent = "Copied!";
+      setTimeout(() => c.textContent = "Copy", 1500);
+    });
+  } catch(err){
+    box.innerHTML = `<span class="error">${err.message}</span>`;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+document.getElementById("draftReplyBtn").addEventListener("click", draftCustomerReply);
+
+renderAllTickets();
+refreshKeyStatus();
+</script>
+</body>
+</html>
